@@ -8,3 +8,5 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 18.x
+      - key: RENDER_EXTERNAL_URL
+        value: https://microsoft-jobs-tracker.onrender.com

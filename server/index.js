@@ -76,6 +76,17 @@ cron.schedule('*/30 * * * * *', () => {
     scrapeLinkedInJobs();
 });
 
+// Self-ping every 10 minutes to keep Render free tier awake 24/7
+const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
+setInterval(async () => {
+    try {
+        await axios.get(`${SELF_URL}/api/jobs`);
+        console.log(`[Keep-alive] Pinged ${SELF_URL} successfully`);
+    } catch (e) {
+        console.warn(`[Keep-alive] Ping failed: ${e.message}`);
+    }
+}, 10 * 60 * 1000); // every 10 minutes
+
 // API Routes
 app.get('/api/jobs', (req, res) => {
     res.json({
