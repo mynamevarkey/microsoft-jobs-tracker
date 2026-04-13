@@ -146,8 +146,8 @@ async function scrapeLinkedInJobs() {
 // ── Startup & Schedule ───────────────────────────────────────────────────────
 scrapeLinkedInJobs();
 
-// Scrape every 30 seconds
-cron.schedule('*/30 * * * * *', () => scrapeLinkedInJobs());
+// Scrape every 10 seconds
+cron.schedule('*/10 * * * * *', () => scrapeLinkedInJobs());
 
 // Self-ping every 10 minutes to keep Render awake 24/7
 const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
