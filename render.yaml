@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: microsoft-jobs-tracker
+    env: node
+    plan: free
+    buildCommand: "cd client && npm install && npm run build && cd ../server && npm install"
+    startCommand: "cd server && node index.js"
+    envVars:
+      - key: NODE_VERSION
+        value: 18.x
