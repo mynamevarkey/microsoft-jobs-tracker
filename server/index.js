@@ -14,11 +14,15 @@ app.use(cors());
 app.use(express.json());
 
 // ── Web Push Setup ──────────────────────────────────────────────────────────
-webpush.setVapidDetails(
-    process.env.VAPID_EMAIL || 'mailto:admin@microsoft-jobs-tracker.com',
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-);
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+        process.env.VAPID_EMAIL || 'mailto:admin@microsoft-jobs-tracker.com',
+        process.env.VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+    );
+} else {
+    console.warn('Push VAPID keys missing - web push disabled');
+}
 
 let pushSubscriptions = []; // In-memory store (persists while server is alive)
 
@@ -157,7 +161,10 @@ setInterval(async () => {
 }, 10 * 60 * 1000);
 
 // ── API Routes ───────────────────────────────────────────────────────────────
-app.get('/api/jobs', (req, res) => {
+app.get('/api/jobs', async (req, res) => {
+    if (jobsCache.length === 0 && !isScraping) {
+        await scrapeLinkedInJobs();
+    }
     res.json({ success: true, jobs: jobsCache, lastScraped, isScraping, error: scrapeError });
 });
 
