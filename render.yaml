@@ -16,3 +16,7 @@ services:
         value: Oi9AX1PLHFuAO5rhkjlYBmUwWzic13qdcJ2ij2CeSaw
       - key: VAPID_EMAIL
         value: mailto:admin@microsoft-jobs-tracker.com
+      - key: WHATSAPP_PHONE
+        value: "918281314010"
+      - key: WHATSAPP_APIKEY
+        value: PASTE_YOUR_APIKEY_HERE

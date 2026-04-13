@@ -22,6 +22,26 @@ webpush.setVapidDetails(
 
 let pushSubscriptions = []; // In-memory store (persists while server is alive)
 
+// ── WhatsApp via CallMeBot ───────────────────────────────────────────────────
+async function sendWhatsAppNotification(newJobs) {
+    const phone = process.env.WHATSAPP_PHONE;
+    const apiKey = process.env.WHATSAPP_APIKEY;
+    if (!phone || !apiKey) return; // skip if not configured
+
+    const jobLines = newJobs.slice(0, 5).map(j => `• ${j.title} | ${j.location}`).join('\n');
+    const message = encodeURIComponent(
+        `🔔 *New Microsoft Jobs on LinkedIn!*\n\n${jobLines}\n\n🔗 https://microsoft-jobs-tracker.onrender.com`
+    );
+
+    try {
+        await axios.get(`https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${message}&apikey=${apiKey}`);
+        console.log(`[WhatsApp] Notification sent for ${newJobs.length} new job(s)`);
+    } catch (e) {
+        console.warn('[WhatsApp] Failed to send:', e.message);
+    }
+}
+
+
 // ── State ───────────────────────────────────────────────────────────────────
 let jobsCache = [];
 let knownJobIds = new Set();
@@ -29,7 +49,7 @@ let isScraping = false;
 let scrapeError = null;
 let lastScraped = null;
 
-const LINKEDIN_JOBS_URL = 'https://www.linkedin.com/jobs/search/?currentJobId=4389712784&f_C=1035%2C1418841%2C165397%2C1386954%2C3763403%2C3290211%2C10073178%2C3238203%2C2270931%2C3641570%2C263515%2C1148098%2C5097047%2C589037%2C3178875%2C692068%2C18086638%2C19537%2C19053704%2C1889423%2C30203%2C5607466%2C11206713%2C2446424&geoId=92000000&origin=COMPANY_PAGE_JOBS_CLUSTER_EXPANSION&originToLandingJobPostings=4389712784%2C4365488129%2C4369068627%2C4384167845%2C4400918434%2C4400516806%2C4380331555%2C4361520955%2C4395319100&sortBy=DD';
+const LINKEDIN_JOBS_URL = 'https://www.linkedin.com/jobs/search/?currentJobId=4401074592&f_C=1035%2C1418841%2C165397%2C1386954%2C3763403%2C3290211%2C10073178%2C3238203%2C2270931%2C3641570%2C263515%2C1148098%2C5097047%2C589037%2C3178875%2C692068%2C18086638%2C19537%2C19053704%2C1889423%2C30203%2C5607466%2C11206713%2C2446424&geoId=102713980&origin=JOB_SEARCH_PAGE_SEARCH_BUTTON&refresh=true';
 
 // ── Send Push to all subscribers ─────────────────────────────────────────────
 async function sendPushNotifications(newJobs) {
