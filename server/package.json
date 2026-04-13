@@ -16,6 +16,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
-    "puppeteer": "^24.40.0"
+    "puppeteer": "^24.40.0",
+    "web-push": "^3.6.7"
   }
 }

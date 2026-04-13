@@ -10,3 +10,9 @@ services:
         value: 18.x
       - key: RENDER_EXTERNAL_URL
         value: https://microsoft-jobs-tracker.onrender.com
+      - key: VAPID_PUBLIC_KEY
+        value: BEUu3MqV69o5YBCgKmrgKMLfEAcgPB-wHOu72_-wo3wT8_WD7kvpRNWfczC3f3-P05cd910raPrBavXXZfA6KI4
+      - key: VAPID_PRIVATE_KEY
+        value: Oi9AX1PLHFuAO5rhkjlYBmUwWzic13qdcJ2ij2CeSaw
+      - key: VAPID_EMAIL
+        value: mailto:admin@microsoft-jobs-tracker.com

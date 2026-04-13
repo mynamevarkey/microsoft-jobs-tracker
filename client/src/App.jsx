@@ -15,10 +15,44 @@ function App() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  // Register push subscription with server on startup
   useEffect(() => {
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-      Notification.requestPermission();
+    async function setupPush() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+
+        const reg = await navigator.serviceWorker.ready;
+
+        // Fetch the VAPID public key from our server
+        const resp = await fetch('/api/vapid-public-key');
+        const { publicKey } = await resp.json();
+
+        // Check if already subscribed
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          // Subscribe using VAPID public key
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: publicKey
+          });
+        }
+
+        // Send subscription to backend
+        await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(sub)
+        });
+
+        console.log('✅ Push notifications enabled!');
+      } catch (err) {
+        console.warn('Push setup failed:', err.message);
+      }
     }
+    setupPush();
   }, []);
 
   const fetchJobs = async () => {
