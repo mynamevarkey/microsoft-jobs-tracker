@@ -71,8 +71,8 @@ async function scrapeLinkedInJobs() {
 // Initial Scrape
 scrapeLinkedInJobs();
 
-// Schedule scrape every 2 minutes (120 seconds)
-cron.schedule('*/2 * * * *', () => {
+// Schedule scrape every 30 seconds
+cron.schedule('*/30 * * * * *', () => {
     scrapeLinkedInJobs();
 });
 
