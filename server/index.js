@@ -26,60 +26,37 @@ async function scrapeLinkedInJobs() {
     console.log('Started scraping LinkedIn jobs for Microsoft...');
 
     try {
-        const jobs = [];
+        const response = await axios.get(LINKEDIN_JOBS_URL, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            }
+        });
         
-        try {
-            const msCareersUrl = 'https://apply.careers.microsoft.com/api/pcsx/search?domain=microsoft.com&query=Technical%20Support&location=India&start=0&sort_by=relevance&filter_include_remote=1';
-            const msRes = await axios.get(msCareersUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-            const positions = msRes.data.data ? msRes.data.data.positions || [] : [];
-            for (let pos of positions) {
+        const $ = cheerio.load(response.data);
+        const jobs = [];
+
+        $('.base-search-card').each((i, card) => {
+            const titleElement = $(card).find('.base-search-card__title').text().trim();
+            const subtitleElement = $(card).find('.base-search-card__subtitle').text().trim();
+            const locationElement = $(card).find('.job-search-card__location').text().trim();
+            const urlElement = $(card).find('.base-card__full-link').attr('href');
+            const timeElement = $(card).find('time').text().trim();
+
+            if (titleElement) {
                 jobs.push({
-                    title: pos.title,
-                    company: 'Microsoft Careers',
-                    location: pos.location || 'India',
-                    url: `https://apply.careers.microsoft.com/jobs/${pos.position_id}`,
-                    timePosted: pos.posted_date || new Date().toISOString().split('T')[0],
-                    id: pos.position_id || Math.random().toString(36).substring(7),
-                    isNew: true // simple flag to aid debugging
+                    title: titleElement,
+                    company: subtitleElement || 'Microsoft',
+                    location: locationElement || 'Worldwide',
+                    url: urlElement || '',
+                    timePosted: timeElement || '',
+                    id: urlElement ? new URL(urlElement).pathname.split('-').pop() : Math.random().toString(36).substring(7)
                 });
             }
-        } catch (e) {
-            console.error('Error fetching Microsoft internal Careers API: ', e.message);
-        }
+        });
 
-        try {
-            const response = await axios.get(LINKEDIN_JOBS_URL, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5'
-                }
-            });
-            
-            const $ = cheerio.load(response.data);
-            $('.base-search-card').each((i, card) => {
-                const titleElement = $(card).find('.base-search-card__title').text().trim();
-                const subtitleElement = $(card).find('.base-search-card__subtitle').text().trim();
-                const locationElement = $(card).find('.job-search-card__location').text().trim();
-                const urlElement = $(card).find('.base-card__full-link').attr('href');
-                const timeElement = $(card).find('time').text().trim();
-
-                if (titleElement) {
-                    jobs.push({
-                        title: titleElement,
-                        company: subtitleElement || 'Microsoft',
-                        location: locationElement || 'Worldwide',
-                        url: urlElement || '',
-                        timePosted: timeElement || '',
-                        id: urlElement ? new URL(urlElement).pathname.split('-').pop() : Math.random().toString(36).substring(7)
-                    });
-                }
-            });
-        } catch (e) {
-            console.error('Error fetching LinkedIn jobs: ', e.message);
-        }
-
-        console.log(`Successfully scraped ${jobs.length} jobs.`);
+        console.log(`Successfully scraped ${jobs.length} LinkedIn jobs.`);
         jobsCache = jobs;
         lastScraped = new Date().toISOString();
 
@@ -129,3 +106,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
 });
+
+module.exports = app;
